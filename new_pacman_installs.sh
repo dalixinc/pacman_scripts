@@ -1,6 +1,6 @@
 # Script to show recent pacman installs, with some flexibility
 #
-# © Dale with Copilot365 - 4/1/21  version 1.1
+# © Dale with Copilot365 - 4/1/21  version 1.1.2
 #
 # Options:
 # ========
@@ -30,8 +30,7 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-# Header
-printf "\e[1;36mName\tVersion\tSize\tInstalled Date\e[0m\n"
+printf "\e[1;36m%-20s %-15s %-12s %s\e[0m\n" "Name" "Version" "Size" "Installed Date"
 
 pacman -Qi | awk -v pretty="$PRETTY_DATE" -v pretty_time="$PRETTY_DATE_TIME" '
 /^Name/{name=$3}
@@ -50,18 +49,17 @@ pacman -Qi | awk -v pretty="$PRETTY_DATE" -v pretty_time="$PRETTY_DATE_TIME" '
         if (pretty == "true" || pretty_time == "true") {
             cmd_fmt | getline nice_date
             close(cmd_fmt)
-            print epoch, name, version, size, nice_date
+            print epoch "|" name "|" version "|" size "|" nice_date
         } else {
-            print epoch, name, version, size, date_str
+            print epoch "|" name "|" version "|" size "|" date_str
         }
     }
 }
-' | sort $( $REVERSE && echo "-n" || echo "-nr" ) | head -n "$LINES" | awk -v pretty="$PRETTY_DATE" -v pretty_time="$PRETTY_DATE_TIME" '
+' | sort $( $REVERSE && echo "-n" || echo "-nr" ) | head -n "$LINES" | awk -F"|" '
 {
-    if (pretty == "true" || pretty_time == "true") {
-        printf "%-20s %-15s %-12s \033[0;32m%s\033[0m\n", $2, $3, $4, $5" "$6
-    } else {
-        printf "%-20s %-15s %-12s %s\n", $2, $3, $4, $5" "$6" "$7" "$8" "$9" "$10
-    }
+    printf "%-20s %-15s %-12s \033[0;32m%s\033[0m\n", $2, $3, $4, $5
 }
-' | column -t
+'
+
+
+
